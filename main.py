@@ -1,9 +1,10 @@
 import os
-import time
+import sys
 import json
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support.select import Select
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from functions import dataslicing, loaddata
 
@@ -17,12 +18,11 @@ with open("parameters.json", "r") as openfile:
 filepath = os.getcwd()+"\{}".format(parameters["file name"])
 
 df = loaddata(filepath, parameters["sheet name"])
-df = df.drop(index=0).dropna(how="all").set_index("I.ITEM_NO")
+df = df.drop(index=0).dropna(how="all")
 
 # count row
 
 n_row = len(df.index)
-print(n_row)
 
 # separate data group by 50
 
@@ -50,24 +50,49 @@ driver.get(homeurl)
 
 # click material management button
 
-driver.find_element(By.LINK_TEXT, "Material management").click()
-time.sleep(1)
+try:
+    manage_button = WebDriverWait(driver, parameters["time delay"]).until(
+        EC.presence_of_element_located((By.LINK_TEXT, "Material management")))
+    manage_button.click()
+
+except TimeoutException:
+    print("Loading took too much time!")
+
+# print text within console
+
+texts = (parameters["plant name"], parameters["mrpc name"])
+
+sys.stdout.write("Stock code is being created for plant \"%s\"\n" %parameters["plant name"])
+sys.stdout.write("through MRP Controller \"%s\"\n" %parameters["mrpc name"])
+sys.stdout.write("using \"%s\" file.\n\n" %parameters["file name"])
+sys.stdout.write("%Progress\n")
 
 # loop through sliced dataframe
 
 for dataframe in sliced_df:
     
     # click new material button
-
-    driver.find_element(By.LINK_TEXT, "New material").click()
-    time.sleep(1)
+    
+    try:
+        mat_button = WebDriverWait(driver, parameters["time delay"]).until(
+            EC.presence_of_element_located((By.LINK_TEXT, "New material")))
+        mat_button.click()
+    
+    except TimeoutException:
+        print("Loading took too much time!")
 
     # show maintanance plant list
 
-    driver.find_element(
-        By.CSS_SELECTOR, 
-        '#frm > div.wrapper > div.content-wrapper > section.content > div > div > div > div:nth-child(2) > div:nth-child(2) > table > tbody > tr:nth-child(2) > td:nth-child(2) > div > span > span.selection > span > span.select2-selection__arrow'
-        ).click()
+    try:
+        plant_button = WebDriverWait(driver, parameters["time delay"]).until(
+            EC.presence_of_element_located((
+            By.CSS_SELECTOR, 
+             '#frm > div.wrapper > div.content-wrapper > section.content > div > div > div > div:nth-child(2) > div:nth-child(2) > table > tbody > tr:nth-child(2) > td:nth-child(2) > div > span > span.selection > span > span.select2-selection__arrow'
+             )))
+        plant_button.click()
+    
+    except TimeoutException:
+        print("Loading took too much time!")
 
     # select plant
 
@@ -78,14 +103,19 @@ for dataframe in sliced_df:
         if plant.text == plantname:
             plant.click()
             break
-    time.sleep(1)
 
     # show MRP Controller list
 
-    driver.find_element(
-        By.CSS_SELECTOR, 
-        '#frm > div.wrapper > div.content-wrapper > section.content > div > div > div > div:nth-child(2) > div:nth-child(2) > table > tbody > tr:nth-child(3) > td:nth-child(2) > div > span > span.selection > span > span.select2-selection__arrow'
-        ).click()
+    try:
+        mrpc_button = WebDriverWait(driver, parameters["time delay"]).until(
+            EC.presence_of_element_located((
+            By.CSS_SELECTOR, 
+             '#frm > div.wrapper > div.content-wrapper > section.content > div > div > div > div:nth-child(2) > div:nth-child(2) > table > tbody > tr:nth-child(3) > td:nth-child(2) > div > span > span.selection > span > span.select2-selection__arrow'
+             )))
+        mrpc_button.click()
+    
+    except TimeoutException:
+        print("Loading took too much time!")
 
     # select mrpc
 
@@ -115,9 +145,15 @@ for dataframe in sliced_df:
         # current_url = driver.current_url
 
         # time.sleep(5)
-        # driver.quit()
 
-        completion = (row[0]/n_row)*100
-        partname = row[1]["S.PRT_NAME"]
-        eqtag = row[1]["S.EQ_TAG"]
-        print("{}% {} is uploaded for {}.".format(completion, partname, eqtag))
+        # report status
+
+        sys.stdout.write('\r')
+        progress = round((row[0]/n_row)*100, 2)
+        i = int(progress//5)
+        sys.stdout.write("[%-20s] %.2f%%" %('='*i, progress))
+        sys.stdout.flush()
+        # time.sleep(0.1)
+
+sys.stdout.write("\n")
+driver.quit()
