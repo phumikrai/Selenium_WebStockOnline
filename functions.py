@@ -1,3 +1,5 @@
+# this file is for function collection
+
 def dataslicing(df):
     """\
     This function is to slice dataframe by 50 
@@ -27,3 +29,18 @@ def dataslicing(df):
     # return list of sliced dataframe
 
     return [df.iloc[a:b] for a, b in range_set]
+
+def loaddata(filepath: str, sheetname: str):
+    """
+    Load data from an Excel file without warning
+    """
+    # import pandas and warning
+
+    import pandas as pd
+    import warnings
+
+    warnings.simplefilter(action='ignore', category=UserWarning)
+    
+    # return read excel function
+
+    return pd.read_excel(filepath, sheet_name=sheetname)
