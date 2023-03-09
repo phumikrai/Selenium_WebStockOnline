@@ -12,7 +12,7 @@ from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 # local library
 
 from functions import dataslicing, loaddata, greeting, progressreport, dropdown_selection
-from material_spec import autodump_mat_spec
+from material_spec import select_mat_spec, dump_mat_spec
 
 # load parameter from parameters.json
 
@@ -33,6 +33,10 @@ n_row = len(df.index)
 # separate data group by 50
 
 sliced_df = dataslicing(df)
+
+# get column name
+
+columnname = df.columns
 
 # set pageLoadStrategy
 
@@ -141,9 +145,9 @@ for dataframe in sliced_df:
         groupitem = row[1]["I.GROUP_TYPE"]
         matcodeitem = str(row[1]["I.MATGRP_CODE"])
 
-        # dump data into material specification session
+        # select material specification session
 
-        check_error = autodump_mat_spec(driver, groupalias, matcodealias, groupitem, matcodeitem)
+        check_error = select_mat_spec(driver, groupalias, matcodealias, groupitem, matcodeitem)
         
         # if error is still raising, print error as file and break this loop
 
@@ -157,6 +161,75 @@ for dataframe in sliced_df:
             driver.close()
         else:
             pass
+
+        # select oem, brand, or general from dropdown list
+
+        obg_selector = """#MainContent_dvR_001 > table > tbody > tr > td:nth-child(2) > div 
+                        > span > span.selection > span > span.select2-selection__arrow"""
+        obgname = parameters["obgalias"][dataframe["S.MATSPEC_01"]]
+        dropdown_selection(driver=driver, button_css=obg_selector, selectname=obgname)
+
+        # dump data into inputs of material specification session session
+
+        dump_mat_spec(driver, row[1], parameters["mat_spec_input"], columnname)
+
+        # select storing from dropdown list
+
+        store_selector = """#MainContent_dvR_049 > table > tbody > tr > td:nth-child(2) > div 
+                        > span > span.selection > span > span.select2-selection__arrow"""
+        storename = parameters["storealias"][dataframe["S.STORING"]]
+        dropdown_selection(driver=driver, button_css=store_selector, selectname=storename)
+
+        # select storing detail from dropdown list
+
+        detail_selector = """#MainContent_dvR_050 > table > tbody > tr > td:nth-child(2) > div 
+                        > span > span.selection > span > span.select2-selection__arrow"""
+        detailname = parameters["detailalias"][dataframe["S.STORING_DETAIL"]]
+        dropdown_selection(driver=driver, button_css=detail_selector, selectname=detailname)
+
+        # select weight from dropdown list
+
+        weight_selector = """#MainContent_dvR_052 > table > tbody > tr > td:nth-child(2) > div 
+                        > span > span.selection > span > span.select2-selection__arrow"""
+        weightname = parameters["weightalias"][dataframe["S.WEIGHT"]]
+        dropdown_selection(driver=driver, button_css=weight_selector, selectname=weightname)
+        
+        # select unit of measure from dropdown list
+
+        unit_selector = """#MainContent_dvR_054 > table > tbody > tr > td:nth-child(2) > div 
+                        > span > span.selection > span > span.select2-selection__arrow"""
+        unitname = parameters["unitalias"][dataframe["S.UNIT"]]
+        dropdown_selection(driver=driver, button_css=unit_selector, selectname=unitname)
+
+        if dataframe["S.UNIT"] == "SET":
+            dumpinput(driver, dataframe["S.SET_CONSIST"], "#MainContent_txtR_SET_CONSIST")
+
+        """
+        2. Apply Equipment (BOM)
+        """
+
+
+        """
+        3. Material Master
+        """
+
+
+
+        """
+        4. Material Return Stock
+        """
+
+
+        
+
+        """
+        5. Attach Document
+        """
+
+
+        """
+        6. Request Reason
+        """
 
         # report status
 
@@ -172,7 +245,7 @@ for dataframe in sliced_df:
 
     break
 
-print("\nDone, Sed Lew Jaa~")
+print("\Sed Lew Jaa~")
 # driver.quit()
 
 # print error report if found

@@ -2,7 +2,7 @@
 1. Material Specification
 """
 
-def autodump_mat_spec(driver, groupalias, materialalias, groupitem, matcodeitem):
+def select_mat_spec(driver, groupalias, materialalias, groupitem, matcodeitem):
     """
     This function is for automatically dumping data into material specification session
     driver: browser driver class created from webdriver
@@ -101,3 +101,23 @@ def loadspec(driver):
         check_error = False
 
     return check_error
+
+def dump_mat_spec(driver, selectedrow, column_to_field, mat_spec_input):
+    """
+    This function is for automatically dumping data into material specification session
+    driver: browser driver class created from webdriver
+    selectedrow: seleced row for data input
+    mat_spec_input: column and field related as dict
+    columnname : name of column within dataframe
+    """
+    # import library
+
+    from functions import dumpinput
+
+    # loop through each column to dump available field
+
+    for col, value in zip(columnname, selectedrow):
+        if col in column_to_field:
+            dumpinput(driver, str(value), column_to_field[col])
+        else:
+            pass

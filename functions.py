@@ -133,3 +133,18 @@ def dropdown_selection(driver, button_css, selectname):
             break
         else:
             pass
+
+def dumpinput(driver, iteminput, cssname):
+    """
+    This function is for dumping data into field input
+    driver: browser driver class created from webdriver
+    iteminput: item from specific column
+    cssname: css selector
+    """
+    # import library
+
+    from selenium.webdriver.common.by import By
+    
+    input = driver.find_element(By.CSS_SELECTOR, cssname)
+    input.send_keys(iteminput)
+
