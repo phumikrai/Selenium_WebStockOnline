@@ -1,12 +1,12 @@
 import os
-import sys
 import json
 from selenium import webdriver
 from selenium.webdriver.common.by import By
+from selenium.common.exceptions import TimeoutException, NoSuchElementException
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
-from functions import dataslicing, loaddata
+from functions import dataslicing, loaddata, greeting, progressreport, dropdown_selection
 
 # load parameter from parameters.json
 
@@ -51,7 +51,7 @@ driver.get(homeurl)
 # click material management button
 
 try:
-    manage_button = WebDriverWait(driver, parameters["time delay"]).until(
+    manage_button = WebDriverWait(driver, 5).until(
         EC.presence_of_element_located((By.LINK_TEXT, "Material management")))
     manage_button.click()
 
@@ -60,12 +60,11 @@ except TimeoutException:
 
 # print text within console
 
-texts = (parameters["plant name"], parameters["mrpc name"])
+greeting(parameters["plant name"], parameters["mrpc name"], parameters["file name"])
 
-sys.stdout.write("Stock code is being created for plant \"%s\"\n" %parameters["plant name"])
-sys.stdout.write("through MRP Controller \"%s\"\n" %parameters["mrpc name"])
-sys.stdout.write("using \"%s\" file.\n\n" %parameters["file name"])
-sys.stdout.write("%Progress\n")
+# error collection
+
+errorlist = []
 
 # loop through sliced dataframe
 
@@ -74,86 +73,170 @@ for dataframe in sliced_df:
     # click new material button
     
     try:
-        mat_button = WebDriverWait(driver, parameters["time delay"]).until(
+        mat_button = WebDriverWait(driver, 5).until(
             EC.presence_of_element_located((By.LINK_TEXT, "New material")))
         mat_button.click()
     
     except TimeoutException:
         print("Loading took too much time!")
 
-    # show maintanance plant list
+    # select maintanance plant from dropdown list
 
-    try:
-        plant_button = WebDriverWait(driver, parameters["time delay"]).until(
-            EC.presence_of_element_located((
-            By.CSS_SELECTOR, 
-             '#frm > div.wrapper > div.content-wrapper > section.content > div > div > div > div:nth-child(2) > div:nth-child(2) > table > tbody > tr:nth-child(2) > td:nth-child(2) > div > span > span.selection > span > span.select2-selection__arrow'
-             )))
-        plant_button.click()
-    
-    except TimeoutException:
-        print("Loading took too much time!")
-
-    # select plant
-
+    plant_selector = """#frm > div.wrapper > div.content-wrapper > section.content > div
+                        > div > div > div:nth-child(2) > div:nth-child(2) > table > tbody
+                        > tr:nth-child(2) > td:nth-child(2) > div > span > span.selection 
+                        > span > span.select2-selection__arrow"""
     plantname = parameters["plant name"]
-    plantlist = driver.find_elements(By.XPATH, "/html/body/span/span/span[2]/ul/li")
+    dropdown_selection(driver=driver, button_css=plant_selector, selectname=plantname)
 
-    for plant in plantlist:
-        if plant.text == plantname:
-            plant.click()
-            break
+    # select MRP Controller from dropdown list
 
-    # show MRP Controller list
-
-    try:
-        mrpc_button = WebDriverWait(driver, parameters["time delay"]).until(
-            EC.presence_of_element_located((
-            By.CSS_SELECTOR, 
-             '#frm > div.wrapper > div.content-wrapper > section.content > div > div > div > div:nth-child(2) > div:nth-child(2) > table > tbody > tr:nth-child(3) > td:nth-child(2) > div > span > span.selection > span > span.select2-selection__arrow'
-             )))
-        mrpc_button.click()
-    
-    except TimeoutException:
-        print("Loading took too much time!")
-
-    # select mrpc
-
+    mrpc_selector = """#frm > div.wrapper > div.content-wrapper > section.content > div 
+                        > div > div > div:nth-child(2) > div:nth-child(2) > table > tbody 
+                        > tr:nth-child(3) > td:nth-child(2) > div > span > span.selection
+                        > span > span.select2-selection__arrow"""
     mrpcname = parameters["mrpc name"]
-    mrpclist = driver.find_elements(By.XPATH, "/html/body/span/span/span[2]/ul/li")
-
-    for mrpc in mrpclist:
-        if mrpc.text == mrpcname:
-            mrpc.click()
-            break
+    dropdown_selection(driver=driver, button_css=mrpc_selector, selectname=mrpcname)
 
     # loop through each row of dataframe
 
     for row in dataframe.iterrows():
 
-        # # click "add item" Button
+        # click "add item" Button
 
-        # driver.find_element(
-        #     By.CSS_SELECTOR
-        #     , "#MainContent_btnAdd"
-        #     ).click()
-        # time.sleep(1)
+        driver.find_element(
+            By.CSS_SELECTOR, 
+            "#MainContent_btnAdd"
+            ).click()
 
-        # # switch driver to add item window
+        # check page redirect and set windows
 
-        # driver.switch_to.window(driver.window_handles[1])
-        # current_url = driver.current_url
+        try:
+            WebDriverWait(driver, 10).until(
+                EC.new_window_is_opened(driver.window_handles))
+            before_window = driver.window_handles[0]
+            after_window = driver.window_handles[-1]
+        
+        except TimeoutException:
+            print("Loading took too much time!")
 
-        # time.sleep(5)
+        # switch driver to new one
+
+        driver.switch_to.window(after_window)
+
+        """
+        1. Material Specification
+        """
+        # select group type from dropdown list
+        
+        group_selector = """#frmDoc > div:nth-child(5) > section > div:nth-child(2) 
+                            > div.box-body > div:nth-child(1) > div.col-md-5 > table 
+                            > tbody > tr > td:nth-child(2) > span > span.selection 
+                            > span > span.select2-selection__arrow"""
+        groupalias = parameters["group alias"]
+        groupname = groupalias[row[1]["I.GROUP_TYPE"]]
+        dropdown_selection(driver=driver, button_css=group_selector, selectname=groupname)
+
+        # select material group from dropdown list
+
+        material_selector = """#frmDoc > div:nth-child(5) > section > div:nth-child(2) 
+                                > div.box-body > div:nth-child(1) > div.col-md-7 > table 
+                                > tbody > tr > td:nth-child(2) > div > span > span.selection 
+                                > span > span.select2-selection__arrow"""
+        materialalias = parameters["material alias"]
+
+        try:
+            materialname = materialalias[str(row[1]["I.MATGRP_CODE"])]
+            dropdown_selection(driver=driver, button_css=material_selector, selectname=materialname)
+
+            # click "Load spec" Button
+
+            driver.find_element(
+                By.CSS_SELECTOR, 
+                "#MainContent_btnSPEC"
+                ).click()
+            
+            # check error
+
+            check_error = driver.find_element(
+                By.CSS_SELECTOR, "#MainContent_ddlMATGRP-error").is_displayed()
+        
+            if check_error:
+
+                # if error then loop through the remaining type for checking
+
+                for key, item in groupalias.items():
+                    if key != row[1]["I.GROUP_TYPE"]:
+
+                        # select group type from dropdown list again
+
+                        dropdown_selection(driver=driver, button_css=group_selector, selectname=item)
+
+                        # select material group from dropdown list
+
+                        dropdown_selection(driver=driver, button_css=material_selector, selectname=materialname)
+
+                        # click "Load spec" Button again
+
+                        driver.find_element(
+                            By.CSS_SELECTOR
+                            , "#MainContent_btnSPEC"
+                            ).click()
+                        
+                        # check error again
+                        
+                        try:
+                            check_error = driver.find_element(
+                                                By.CSS_SELECTOR, 
+                                                "#MainContent_ddlMATGRP-error"
+                                                ).is_displayed()
+                        except NoSuchElementException:
+                            check_error = False
+
+                        if check_error:
+                            continue
+                        else:
+                            break
+
+        except KeyError:
+            check_error = True
+        
+        # if error is still raising print error as file
+
+        if check_error:
+            set_format = (row[0], str(row[1]["I.MATGRP_CODE"]), row[1]["S.PRT_NAME"])
+            error_text = "Item No. %s, Material Group %s for %s is not found." %(set_format)
+            errorlist.append(error_text)            
+            
+        driver.close()
+
+
+
+
+
+
 
         # report status
 
-        sys.stdout.write('\r')
-        progress = round((row[0]/n_row)*100, 2)
-        i = int(progress//5)
-        sys.stdout.write("[%-20s] %.2f%%" %('='*i, progress))
-        sys.stdout.flush()
-        # time.sleep(0.1)
+        progressreport(indexnumber=row[0], totalrow=n_row)
 
-sys.stdout.write("\n")
-driver.quit()
+        break
+
+        # switch driver back to material request page  
+
+        driver.switch_to.window(before_window)
+    
+    # this break will be removed after done
+
+    break
+
+print("\nDone Jaa~")
+# driver.quit()
+
+# print error report if found
+
+if len(errorlist) > 0:
+    with open("error_report.txt", "w") as errorfile:
+        for erroritem in errorlist:
+            errorfile.write('%s\n' %erroritem)
+    errorfile.close()
