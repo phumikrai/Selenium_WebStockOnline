@@ -9,7 +9,7 @@
         "GAS":"Gas and Consumable",
         "STD":"Spare Part-Brand or General"
     },
-    "material alias": {
+    "matcode alias": {
         "1010210":"1010210: Mechanical Seal",
         "1010520":"1010520: PSV, RV",
         "1011120":"1011120: Filter-Mechanical",

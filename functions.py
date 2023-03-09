@@ -1,7 +1,7 @@
 # this file is for function collection
 
 def dataslicing(df):
-    """\
+    """
     This function is to slice dataframe by 50 
     df: dataframe
     -----
@@ -25,6 +25,8 @@ def dataslicing(df):
     
     if n_data != datarange[-1]:
         range_set.append((datarange[-1], n_data))
+    else:
+        pass
     
     # return list of sliced dataframe
 
@@ -60,10 +62,15 @@ def greeting(plantname: str, mrpc: str, filename: str):
     """
     import sys
 
-    sys.stdout.write("Bot Jaa~ - Automation for dumping data to Web Stock Online\n\n")
-    sys.stdout.write("Stock code is being created for plant \n\t\"%s\"\n" %plantname)
-    sys.stdout.write("through MRP Controller \n\t\"%s\"\n" %mrpc)
-    sys.stdout.write("using \n\t\"%s\" file.\n\n" %filename)
+    title = " Bot Jaa~! - Automation for dumping data to Web Stock Online\n"
+
+    sys.stdout.write("%s\n" %("="*(len(title))))
+    sys.stdout.write(title)
+    sys.stdout.write("%s\n\n" %("="*(len(title))))
+
+    sys.stdout.write("Stock code is being created for plant: \n\t\"%s\"\n" %plantname)
+    sys.stdout.write("through MRP Controller: \n\t\"%s\"\n" %mrpc)
+    sys.stdout.write("using: \n\t\"%s\"\n\n" %filename)
     sys.stdout.write("% Progress\n")
 
 def progressreport(indexnumber: int, totalrow: int):
@@ -124,3 +131,5 @@ def dropdown_selection(driver, button_css, selectname):
         if item.text == selectname:
             item.click()
             break
+        else:
+            pass

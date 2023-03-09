@@ -1,12 +1,18 @@
+# standard library
+
 import os
 import json
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-from selenium.common.exceptions import TimeoutException, NoSuchElementException
+from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
+
+# local library
+
 from functions import dataslicing, loaddata, greeting, progressreport, dropdown_selection
+from material_spec import autodump_mat_spec
 
 # load parameter from parameters.json
 
@@ -127,94 +133,30 @@ for dataframe in sliced_df:
         """
         1. Material Specification
         """
-        # select group type from dropdown list
-        
-        group_selector = """#frmDoc > div:nth-child(5) > section > div:nth-child(2) 
-                            > div.box-body > div:nth-child(1) > div.col-md-5 > table 
-                            > tbody > tr > td:nth-child(2) > span > span.selection 
-                            > span > span.select2-selection__arrow"""
+
+        # set parameters
+
         groupalias = parameters["group alias"]
-        groupname = groupalias[row[1]["I.GROUP_TYPE"]]
-        dropdown_selection(driver=driver, button_css=group_selector, selectname=groupname)
+        matcodealias = parameters["matcode alias"]
+        groupitem = row[1]["I.GROUP_TYPE"]
+        matcodeitem = str(row[1]["I.MATGRP_CODE"])
 
-        # select material group from dropdown list
+        # dump data into material specification session
 
-        material_selector = """#frmDoc > div:nth-child(5) > section > div:nth-child(2) 
-                                > div.box-body > div:nth-child(1) > div.col-md-7 > table 
-                                > tbody > tr > td:nth-child(2) > div > span > span.selection 
-                                > span > span.select2-selection__arrow"""
-        materialalias = parameters["material alias"]
-
-        try:
-            materialname = materialalias[str(row[1]["I.MATGRP_CODE"])]
-            dropdown_selection(driver=driver, button_css=material_selector, selectname=materialname)
-
-            # click "Load spec" Button
-
-            driver.find_element(
-                By.CSS_SELECTOR, 
-                "#MainContent_btnSPEC"
-                ).click()
-            
-            # check error
-
-            check_error = driver.find_element(
-                By.CSS_SELECTOR, "#MainContent_ddlMATGRP-error").is_displayed()
+        check_error = autodump_mat_spec(driver, groupalias, matcodealias, groupitem, matcodeitem)
         
-            if check_error:
-
-                # if error then loop through the remaining type for checking
-
-                for key, item in groupalias.items():
-                    if key != row[1]["I.GROUP_TYPE"]:
-
-                        # select group type from dropdown list again
-
-                        dropdown_selection(driver=driver, button_css=group_selector, selectname=item)
-
-                        # select material group from dropdown list
-
-                        dropdown_selection(driver=driver, button_css=material_selector, selectname=materialname)
-
-                        # click "Load spec" Button again
-
-                        driver.find_element(
-                            By.CSS_SELECTOR
-                            , "#MainContent_btnSPEC"
-                            ).click()
-                        
-                        # check error again
-                        
-                        try:
-                            check_error = driver.find_element(
-                                                By.CSS_SELECTOR, 
-                                                "#MainContent_ddlMATGRP-error"
-                                                ).is_displayed()
-                        except NoSuchElementException:
-                            check_error = False
-
-                        if check_error:
-                            continue
-                        else:
-                            break
-
-        except KeyError:
-            check_error = True
-        
-        # if error is still raising print error as file
+        # if error is still raising, print error as file and break this loop
 
         if check_error:
-            set_format = (row[0], str(row[1]["I.MATGRP_CODE"]), row[1]["S.PRT_NAME"])
+            set_format = (row[0], matcodeitem, row[1]["S.PRT_NAME"])
             error_text = "Item No. %s, Material Group %s for %s is not found." %(set_format)
-            errorlist.append(error_text)            
+            errorlist.append(error_text)
             
-        driver.close()
+            break
 
-
-
-
-
-
+            driver.close()
+        else:
+            pass
 
         # report status
 
@@ -230,7 +172,7 @@ for dataframe in sliced_df:
 
     break
 
-print("\nDone Jaa~")
+print("\nDone, Sed Lew Jaa~")
 # driver.quit()
 
 # print error report if found
@@ -240,3 +182,5 @@ if len(errorlist) > 0:
         for erroritem in errorlist:
             errorfile.write('%s\n' %erroritem)
     errorfile.close()
+else:
+    pass
