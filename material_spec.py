@@ -2,6 +2,33 @@
 1. Material Specification
 """
 
+class matspec:
+    def __init__(self):
+        self.col_to_css = {
+        "S.MAF_PRT":"#MainContent_txtR_MAF_PRT",
+        "S.PRT_NAME":"#MainContent_txtR_PRT_NAME",
+        "S.MAF_PRT_NO":"#MainContent_txtR_MAF_PRT_NO",
+        "S.SET_POSIT":"#MainContent_txtR_SET_POSIT",
+        "S.MAT_PRT":"#MainContent_txtR_MAT_PRT",
+        "S.SIZE":"#MainContent_txtR_SIZE",
+        "S.PRT_MODEL":"#MainContent_txtR_PRT_MODEL",
+        "S.PRT_SERL":"#MainContent_txtR_PRT_SERL",
+        "S.DRAWING":"#MainContent_txtR_DRAWING",
+        "S.VENDOR":"#MainContent_txtR_VENDOR",
+        "S.OTHER":"#MainContent_txtR_OTHER",
+        "S.SET_INSUR":"#MainContent_txtR_SET_INSUR",
+        "S.RECOMMEND":"#MainContent_txtR_RECOMMEND",
+        "S.SUBTITUT":"#MainContent_txtR_SUBTITUT",
+        "S.OLD_MATERIAL":"#MainContent_txtR_OLD_MATERIAL",
+        "S.TRNS_TO_MAT":"#MainContent_txtR_TRNS_TO_MAT",
+        "S.MAT_TRANSFER":"#MainContent_txtR_MAT_TRANSFER",
+        "S.PROJ_NO":"#MainContent_txtR_PROJ_NO",
+        "S.MATSPEC_03":"#MainContent_txtR_MATSPEC_03",
+        "S.SET_PRESER":"#MainContent_txtR_SET_PRESER",
+        "S.WEB_REQUEST":"#MainContent_txtR_WEB_REQUEST",
+        "S.SET_TECH":"#MainContent_txtR_SET_TECH"
+        }
+
 def select_mat_spec(driver, groupalias, materialalias, groupitem, matcodeitem):
     """
     This function is for automatically dumping data into material specification session
@@ -13,26 +40,27 @@ def select_mat_spec(driver, groupalias, materialalias, groupitem, matcodeitem):
     -----
     return: error checker
     """
+
     # import library
 
-    from selenium.webdriver.common.by import By
     from functions import dropdown_selection
+
+    # set base selector for group type and material group
+
+    base_selector = """#frmDoc > div:nth-child(5) > section > div:nth-child(2) 
+                        > div.box-body > div:nth-child(1) > div.col-md-{index} > table 
+                        > tbody > tr > td:nth-child(2) {tag}> span > span.selection 
+                        > span > span.select2-selection__arrow"""
 
     # select group type from dropdown list
 
-    group_selector = """#frmDoc > div:nth-child(5) > section > div:nth-child(2) 
-                        > div.box-body > div:nth-child(1) > div.col-md-5 > table 
-                        > tbody > tr > td:nth-child(2) > span > span.selection 
-                        > span > span.select2-selection__arrow"""
+    group_selector = base_selector.format(index="5",tag="")
     groupname = groupalias[groupitem]
     dropdown_selection(driver=driver, button_css=group_selector, selectname=groupname)
 
     # select material group from dropdown list
 
-    material_selector = """#frmDoc > div:nth-child(5) > section > div:nth-child(2) 
-                            > div.box-body > div:nth-child(1) > div.col-md-7 > table 
-                            > tbody > tr > td:nth-child(2) > div > span > span.selection 
-                            > span > span.select2-selection__arrow"""
+    material_selector = base_selector.format(index="7",tag="> div ")
 
     try:
         materialname = materialalias[matcodeitem]
@@ -64,6 +92,8 @@ def select_mat_spec(driver, groupalias, materialalias, groupitem, matcodeitem):
                         continue
                     else:
                         break
+                else:
+                    continue
         else:
             pass
 
@@ -93,16 +123,15 @@ def loadspec(driver):
     
     try:
         check_error = driver.find_element(
-                            By.CSS_SELECTOR, 
-                            "#MainContent_ddlMATGRP-error"
-                            ).is_displayed()
+            By.CSS_SELECTOR, "#MainContent_ddlMATGRP-error"
+            ).is_displayed()
     
     except NoSuchElementException:
         check_error = False
 
     return check_error
 
-def dump_mat_spec(driver, selectedrow, column_to_field, mat_spec_input):
+def dump_mat_spec(driver, selectedrow, mat_spec_input, columnname):
     """
     This function is for automatically dumping data into material specification session
     driver: browser driver class created from webdriver
@@ -117,7 +146,10 @@ def dump_mat_spec(driver, selectedrow, column_to_field, mat_spec_input):
     # loop through each column to dump available field
 
     for col, value in zip(columnname, selectedrow):
-        if col in column_to_field:
-            dumpinput(driver, str(value), column_to_field[col])
+        if (col in mat_spec_input) and (str(value) != "nan"):
+            dumpinput(driver, str(value), mat_spec_input[col])
         else:
             pass
+
+
+

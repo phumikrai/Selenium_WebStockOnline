@@ -3,6 +3,7 @@
     "mrpc name": "N22: Inst PHN II",
     "file name": "MAT_template_Uploaded - Test.xlsx",
     "sheet name": "Material Import Template",
+    "request reason": "This material will be reserved and used during turnaround event",
     "group alias": {
         "OEM":"Spare Part-OEM",
         "CHM":"Chemical",
@@ -105,30 +106,6 @@
         "OEM":"OEM",
         "BRAND":"BRAND",
         "GENERAL":"GENERAL"
-    },
-    "mat_spec_input": {
-        "S.MAF_PRT":"#MainContent_txtR_MAF_PRT",
-        "S.PRT_NAME":"#MainContent_txtR_PRT_NAME",
-        "S.MAF_PRT_NO":"#MainContent_txtR_MAF_PRT_NO",
-        "S.SET_POSIT":"#MainContent_txtR_SET_POSIT",
-        "S.MAT_PRT":"#MainContent_txtR_MAT_PRT",
-        "S.SIZE":"#MainContent_txtR_SIZE",
-        "S.PRT_MODEL":"#MainContent_txtR_PRT_MODEL",
-        "S.PRT_SERL":"#MainContent_txtR_PRT_SERL",
-        "S.DRAWING":"#MainContent_txtR_DRAWING",
-        "S.VENDOR":"#MainContent_txtR_VENDOR",
-        "S.OTHER":"#MainContent_txtR_OTHER",
-        "S.SET_INSUR":"#MainContent_txtR_SET_INSUR",
-        "S.RECOMMEND":"#MainContent_txtR_RECOMMEND",
-        "S.SUBTITUT":"#MainContent_txtR_SUBTITUT",
-        "S.OLD_MATERIAL":"#MainContent_txtR_OLD_MATERIAL",
-        "S.TRNS_TO_MAT":"#MainContent_txtR_TRNS_TO_MAT",
-        "S.MAT_TRANSFER":"#MainContent_txtR_MAT_TRANSFER",
-        "S.PROJ_NO":"#MainContent_txtR_PROJ_NO",
-        "S.MATSPEC_03":"#MainContent_txtR_MATSPEC_03",
-        "S.SET_PRESER":"#MainContent_txtR_SET_PRESER",
-        "S.WEB_REQUEST":"#MainContent_txtR_WEB_REQUEST",
-        "S.SET_TECH":"#MainContent_txtR_SET_TECH"
     },
     "storealias": {
         "INDOOR":"INDOOR",

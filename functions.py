@@ -51,12 +51,13 @@ def loaddata(filepath: str, sheetname: str):
 
     return pd.read_excel(filepath, sheet_name=sheetname)
 
-def greeting(plantname: str, mrpc: str, filename: str):
+def greeting(plantname: str, mrpc: str, filename: str, totalrow: int):
     """
     Greeting text using parameters.json file
     plantname: name of plant
     mrpc: name of mrpc
     filename: name of excel file
+    totalrow: total row of data as data count
     -----
     return: greeting text on console
     """
@@ -72,6 +73,8 @@ def greeting(plantname: str, mrpc: str, filename: str):
     sys.stdout.write("through MRP Controller: \n\t\"%s\"\n" %mrpc)
     sys.stdout.write("using: \n\t\"%s\"\n\n" %filename)
     sys.stdout.write("% Progress\n")
+
+    progressreport(indexnumber=0, totalrow=totalrow)
 
 def progressreport(indexnumber: int, totalrow: int):
     """
@@ -102,7 +105,7 @@ def dropdown_selection(driver, button_css, selectname):
     button_css: css selector for dropdown button
     selectname: name of item to be selected
     -----
-    return: progress text and bar on console
+    return: check error
     """
     # import relevant libraries
 
@@ -120,19 +123,20 @@ def dropdown_selection(driver, button_css, selectname):
             )))
         button.click()
     
+        # select item
+
+        itemlist = driver.find_elements(By.XPATH, "/html/body/span/span/span[2]/ul/li")
+
+        for item in itemlist:
+            if item.text == selectname:
+                item.click()
+                check_error = False
+                break
+            else:
+                pass
+    
     except TimeoutException:
-        print("Loading took too much time!")
-
-    # select item
-
-    itemlist = driver.find_elements(By.XPATH, "/html/body/span/span/span[2]/ul/li")
-
-    for item in itemlist:
-        if item.text == selectname:
-            item.click()
-            break
-        else:
-            pass
+        check_error = True
 
 def dumpinput(driver, iteminput, cssname):
     """
@@ -144,7 +148,9 @@ def dumpinput(driver, iteminput, cssname):
     # import library
 
     from selenium.webdriver.common.by import By
-    
+
+    # get input field and dump data
+
     input = driver.find_element(By.CSS_SELECTOR, cssname)
     input.send_keys(iteminput)
 
