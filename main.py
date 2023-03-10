@@ -14,12 +14,16 @@ from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from functions import dataslicing, loaddata, greeting, progressreport, dropdown_selection, dumpinput
 from material_spec import select_mat_spec, dump_mat_spec, matspec
 from apply_equip import select_equipment
-from mat_master import matmaster
+from mat_master import dump_mat_master, matmaster
 
 # load parameter from parameters.json
 
 with open("aliasfile.json", "r") as openfile:
     parameters = json.load(openfile)
+
+# print text within console
+
+greeting(parameters["plant name"], parameters["mrpc name"], parameters["file name"])
 
 # load col to css input data
 
@@ -61,6 +65,14 @@ driver = webdriver.Chrome(executable_path=driverpath, options=options, desired_c
 
 homeurl = "http://gcgplbiis/webstock/"
 
+# set implicitly wait default equal 1 sec
+
+driver.implicitly_wait(1)
+
+# minimize window
+
+driver.minimize_window()
+
 # navigate to url
 
 driver.get(homeurl)
@@ -76,10 +88,10 @@ try:
 except TimeoutException:
     print("Loading took too much time!")
 
+# print initial progress
 
-# print text within console
-
-greeting(parameters["plant name"], parameters["mrpc name"], parameters["file name"], n_row)
+print("% Progress\n")
+progressreport(indexnumber=0, totalrow=n_row)
 
 # error collection
 
@@ -220,9 +232,9 @@ for dataframe in sliced_df:
             set_format = (row[0], row[1]["S.EQ_TAG"], row[1]["S.PRT_NAME"])
             error_text = "Item No. %s, Equipment Tag %s for %s is not found." %(set_format)
             errorlist.append(error_text)
-            break
+            # break
 
-            driver.close()
+            # driver.close()
         else:
             pass
 
@@ -239,33 +251,62 @@ for dataframe in sliced_df:
         4. Material Return Stock
         """
 
-        
+        # leave default value for this
 
         """
         5. Attach Document
         """
 
+        # assume that there are no attachments
 
         """
         6. Request Reason
         """
+
+        # dump reason from aliasfile
+
+        dumpinput(driver, parameters["request reason"], "#MainContent_txtREASON")
+
+        """
+        save record 
+        """
+
+        # click save button
+
+        driver.find_element(By.CSS_SELECTOR, "#MainContent_btnSave2").click()
+
+        # check completion
+
+        message = driver.find_element(By.CSS_SELECTOR, "#MsgDetail").text
+
+        if message == "Save completed.":
+            driver.find_element(By.CSS_SELECTOR, "#Msg-OK").click()
+            pass
+        else:
+            driver.find_element(By.CSS_SELECTOR, "#Msg-OK").click()
+            pass
+            check_error = True
 
         # report status
 
         progressreport(indexnumber=row[0], totalrow=n_row)        
 
         # switch driver back to material request page  
-
-        driver.switch_to.window(before_window)
-
+        try:
+            WebDriverWait(driver, 5).until(
+               EC.element_to_be_clickable((By.CSS_SELECTOR, "#btnClose"))
+               ).click()
+            # driver.find_element(By.CSS_SELECTOR, "#btnClose").click()
+            driver.switch_to.window(before_window)
+        except TimeoutException:
+            driver.close()
+            driver.switch_to.window(before_window)
+            driver.find_element(By.CSS_SELECTOR, "#MainContent_btnRefresh").click()
         break
-    
-    # this break will be removed after done
-
     break
 
 print("\nSed Lew Jaa~")
-# driver.quit()
+driver.quit()
 
 # print error report if found
 

@@ -51,13 +51,12 @@ def loaddata(filepath: str, sheetname: str):
 
     return pd.read_excel(filepath, sheet_name=sheetname)
 
-def greeting(plantname: str, mrpc: str, filename: str, totalrow: int):
+def greeting(plantname: str, mrpc: str, filename: str):
     """
     Greeting text using parameters.json file
     plantname: name of plant
     mrpc: name of mrpc
     filename: name of excel file
-    totalrow: total row of data as data count
     -----
     return: greeting text on console
     """
@@ -68,13 +67,13 @@ def greeting(plantname: str, mrpc: str, filename: str, totalrow: int):
     sys.stdout.write("%s\n" %("="*(len(title))))
     sys.stdout.write(title)
     sys.stdout.write("%s\n\n" %("="*(len(title))))
+    sys.stdout.flush()
 
     sys.stdout.write("Stock code is being created for plant: \n\t\"%s\"\n" %plantname)
     sys.stdout.write("through MRP Controller: \n\t\"%s\"\n" %mrpc)
     sys.stdout.write("using: \n\t\"%s\"\n\n" %filename)
-    sys.stdout.write("% Progress\n")
-
-    progressreport(indexnumber=0, totalrow=totalrow)
+    sys.stdout.flush()
+    
 
 def progressreport(indexnumber: int, totalrow: int):
     """
