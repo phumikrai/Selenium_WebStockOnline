@@ -62,43 +62,39 @@ def select_mat_spec(driver, groupalias, materialalias, groupitem, matcodeitem):
 
     material_selector = base_selector.format(index="7",tag="> div ")
 
-    try:
-        materialname = materialalias[matcodeitem]
-        dropdown_selection(driver=driver, button_css=material_selector, selectname=materialname)
+    materialname = materialalias[matcodeitem]
+    dropdown_selection(driver=driver, button_css=material_selector, selectname=materialname)
 
-        # click load spec and check error
+    # click load spec and check error
 
-        check_error = loadspec(driver)
+    check_error = loadspec(driver)
 
-        # if error then loop through the remaining type for checking
+    # if error then loop through the remaining type for checking
 
-        if check_error:
-            for key, item in groupalias.items():
-                if key != groupitem:
+    if check_error:
+        for key, item in groupalias.items():
+            if key != groupitem:
 
-                    # select group type from dropdown list again
+                # select group type from dropdown list again
 
-                    dropdown_selection(driver=driver, button_css=group_selector, selectname=item)
+                dropdown_selection(driver=driver, button_css=group_selector, selectname=item)
 
-                    # select material group from dropdown list again
+                # select material group from dropdown list again
 
-                    dropdown_selection(driver=driver, button_css=material_selector, selectname=materialname)
+                dropdown_selection(driver=driver, button_css=material_selector, selectname=materialname)
 
-                    # click load spec and check error
+                # click load spec and check error, NoSuchElementException
 
-                    check_error = loadspec(driver)
+                check_error = loadspec(driver)
 
-                    if check_error:
-                        continue
-                    else:
-                        break
-                else:
+                if check_error:
                     continue
-        else:
-            pass
-
-    except KeyError:
-        check_error = True
+                else:
+                    break
+            else:
+                continue
+    else:
+        pass
         
     return check_error
 
@@ -110,7 +106,6 @@ def loadspec(driver):
     # import library
 
     from selenium.webdriver.common.by import By
-    from selenium.common.exceptions import NoSuchElementException
 
     # click "Load spec" Button
 
@@ -120,16 +115,10 @@ def loadspec(driver):
         ).click()
     
     # check error
-    
-    try:
-        check_error = driver.find_element(
-            By.CSS_SELECTOR, "#MainContent_ddlMATGRP-error"
-            ).is_displayed()
-    
-    except NoSuchElementException:
-        check_error = False
 
-    return check_error
+    driver.find_element(
+        By.CSS_SELECTOR, "#MainContent_ddlMATGRP-error"
+        ).is_displayed()
 
 def dump_mat_spec(driver, selectedrow, mat_spec_input, columnname):
     """

@@ -110,32 +110,26 @@ def dropdown_selection(driver, button_css, selectname):
 
     from selenium.webdriver.common.by import By
     from selenium.webdriver.support.ui import WebDriverWait
-    from selenium.common.exceptions import TimeoutException
     from selenium.webdriver.support import expected_conditions as EC
 
     # click dropdown button
 
-    try:
-        button = WebDriverWait(driver, 5).until(
-            EC.presence_of_element_located((
-            By.CSS_SELECTOR, button_css
-            )))
-        button.click()
-    
-        # select item
+    button = WebDriverWait(driver, 5).until(
+        EC.presence_of_element_located((
+        By.CSS_SELECTOR, button_css
+        )))
+    button.click()
 
-        itemlist = driver.find_elements(By.XPATH, "/html/body/span/span/span[2]/ul/li")
+    # select item
 
-        for item in itemlist:
-            if item.text == selectname:
-                item.click()
-                check_error = False
-                break
-            else:
-                pass
-    
-    except TimeoutException:
-        check_error = True
+    itemlist = driver.find_elements(By.XPATH, "/html/body/span/span/span[2]/ul/li")
+
+    for item in itemlist:
+        if item.text == selectname:
+            item.click()
+            break
+        else:
+            pass
 
 def dumpinput(driver, iteminput, cssname):
     """
