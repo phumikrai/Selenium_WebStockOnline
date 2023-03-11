@@ -31,16 +31,14 @@ class matspec:
 
 def select_mat_spec(driver, groupalias, materialalias, groupitem, matcodeitem):
     """
-    This function is for automatically dumping data into material specification session
+    This function is for data selection into material specification session
     driver: browser driver class created from webdriver
     groupalias: group alias from parameters.json
     matcodealias: material code alias from parameters.json
     groupitem: item from group type column
     matcodeitem: item from material group code column
-    -----
-    return: error checker
     """
-
+    
     # import library
 
     from functions import dropdown_selection
@@ -61,7 +59,6 @@ def select_mat_spec(driver, groupalias, materialalias, groupitem, matcodeitem):
     # select material group from dropdown list
 
     material_selector = base_selector.format(index="7",tag="> div ")
-
     materialname = materialalias[matcodeitem]
     dropdown_selection(driver=driver, button_css=material_selector, selectname=materialname)
 
@@ -83,7 +80,7 @@ def select_mat_spec(driver, groupalias, materialalias, groupitem, matcodeitem):
 
                 dropdown_selection(driver=driver, button_css=material_selector, selectname=materialname)
 
-                # click load spec and check error, NoSuchElementException
+                # click load spec and check error
 
                 check_error = loadspec(driver)
 
@@ -95,30 +92,33 @@ def select_mat_spec(driver, groupalias, materialalias, groupitem, matcodeitem):
                 continue
     else:
         pass
-        
-    return check_error
 
 def loadspec(driver):
     """
     This fucntion is for load spec button and return error checker
     driver: browser driver class created from webdriver
+    -----
+    return: error checker
     """
     # import library
 
     from selenium.webdriver.common.by import By
+    from selenium.common.exceptions import NoSuchElementException
 
     # click "Load spec" Button
 
-    driver.find_element(
-        By.CSS_SELECTOR
-        , "#MainContent_btnSPEC"
-        ).click()
+    driver.find_element(By.CSS_SELECTOR, "#MainContent_btnSPEC").click()
     
     # check error
-
-    driver.find_element(
-        By.CSS_SELECTOR, "#MainContent_ddlMATGRP-error"
-        ).is_displayed()
+    try:
+        check_error = driver.find_element(
+            By.CSS_SELECTOR, "#MainContent_ddlMATGRP-error"
+            ).is_displayed()
+    
+    except NoSuchElementException:
+        check_error = False
+    
+    return check_error
 
 def dump_mat_spec(driver, selectedrow, mat_spec_input, columnname):
     """

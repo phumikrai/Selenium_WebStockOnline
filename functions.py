@@ -57,8 +57,6 @@ def greeting(plantname: str, mrpc: str, filename: str):
     plantname: name of plant
     mrpc: name of mrpc
     filename: name of excel file
-    -----
-    return: greeting text on console
     """
     import sys
 
@@ -80,8 +78,6 @@ def progressreport(indexnumber: int, totalrow: int):
     print progress report on console
     indexnumber: indexnumber
     totalrow: total row of data as data count
-    -----
-    return: progress text and bar on console
     """
     import sys
 
@@ -103,8 +99,6 @@ def dropdown_selection(driver, button_css, selectname):
     driver: browser driver class created from webdriver
     button_css: css selector for dropdown button
     selectname: name of item to be selected
-    -----
-    return: check error
     """
     # import relevant libraries
 
@@ -115,9 +109,8 @@ def dropdown_selection(driver, button_css, selectname):
     # click dropdown button
 
     button = WebDriverWait(driver, 5).until(
-        EC.presence_of_element_located((
-        By.CSS_SELECTOR, button_css
-        )))
+        EC.presence_of_element_located((By.CSS_SELECTOR, button_css))
+        )
     button.click()
 
     # select item
@@ -147,3 +140,5 @@ def dumpinput(driver, iteminput, cssname):
     input = driver.find_element(By.CSS_SELECTOR, cssname)
     input.send_keys(iteminput)
 
+def loop_dump():
+    pass

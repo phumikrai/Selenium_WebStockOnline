@@ -28,9 +28,7 @@ with open("aliasfile.json", "r") as openfile:
 
 # print text within console
 
-greeting(parameters["plant name"], 
-         parameters["mrpc name"], 
-         parameters["file name"])
+greeting(parameters["plant name"], parameters["mrpc name"], parameters["file name"])
 
 # load excel data
 
@@ -92,7 +90,7 @@ except TimeoutException:
 
 # program is runnning as long as timeout error = false
 
-while not(timeout_error):
+if not(timeout_error):
 
     # loop through sliced dataframe
 
@@ -149,8 +147,94 @@ while not(timeout_error):
                 # switch driver to new one
 
                 driver.switch_to.window(after_window)
+
+                """
+                1. Material Specification
+                """
+
+                # set parameters
+
+                groupalias = parameters["group alias"]
+                matcodealias = parameters["matcode alias"]
+                groupitem = row[1]["I.GROUP_TYPE"]
+                matcodeitem = str(row[1]["I.MATGRP_CODE"])
+
+                # select material specification session
+
+                select_mat_spec(driver, groupalias, matcodealias, groupitem, matcodeitem)
+
+                # set base selector for all dropdown lists
+
+                matspec_base = """#MainContent_dvR_{index} > table > tbody > tr > td:nth-child(2) > div 
+                                > span > span.selection > span > span.select2-selection__arrow"""
+                
+                # select all dropdown lists
+
+                obg = ("001", "obgalias", "S.MATSPEC_01")
+                store = ("049", "storealias", "S.STORING")
+                detail = ("050", "detailalias", "S.STORING_DETAIL")
+                weight = ("052", "weightalias", "S.WEIGHT")
+                unit = ("054", "unitalias", "S.UNIT")
+                all_dropdowns = [obg, store, detail, weight, unit]
+
+                for dropdown in all_dropdowns:
+                    selector = matspec_base.format(index=dropdown[0])
+                    selectname = parameters[dropdown[1]][row[1][dropdown[2]]]
+                    dropdown_selection(driver=driver, button_css=selector, selectname=selectname)
+
+                # dump data into inputs of material specification session
+
+                dump_mat_spec(driver, row[1], mat_spec_input, columnname)
+
+                # dump "set of" data if available 
+
+                if (row[1]["S.UNIT"] == "SET"):
+                    dumpinput(driver, str(row[1]["S.SET_CONSIST"]), "#MainContent_txtR_SET_CONSIST")
+
+                # ***** leave default values for receiving method ***** 
             
-            except TimeoutException:
+                """
+                2. Apply Equipment (BOM)
+                """
+
+                # click "search eq.bom" Button
+
+                driver.find_element(By.CSS_SELECTOR, "#MainContent_btnBOM").click()
+
+                # select equipment
+
+                check_error = select_equipment(driver, row[1]["S.EQ_TAG"])
+
+                """
+                3. Material Master
+                """
+
+                # dump data into inputs of material master session
+
+                dump_mat_master(driver, row[1], mat_master_input, columnname)
+
+                """
+                4. Material Return Stock
+                """
+
+                # ***** leave default values for this ***** 
+
+                """
+                5. Attach Document
+                """
+
+                # ***** assume that there are no attachments ***** 
+
+                """
+                6. Request Reason
+                """
+
+                # dump reason from aliasfile
+
+                dumpinput(driver, parameters["request reason"], "#MainContent_txtREASON")
+
+
+            except (TimeoutException, KeyError, NoSuchElementException):
                 item_error = True
                 item = row[0]
                 part = row[1]["S.PRT_NAME"]
@@ -159,155 +243,48 @@ while not(timeout_error):
                 error_text = "Item No. {item}, {part}, got an error, maybe mat.group {mat} or eq.tag {tag} is wrong."
                 format_text = error_text.format(item=item, part=part, mat=mat, tag=tag)
                 errorlist.append(format_text)
-                continue
-
-            """
-            1. Material Specification
-            """
-
-            # set parameters
-
-            groupalias = parameters["group alias"]
-            matcodealias = parameters["matcode alias"]
-            groupitem = row[1]["I.GROUP_TYPE"]
-            matcodeitem = str(row[1]["I.MATGRP_CODE"])
-
-            # select material specification session
-
-            check_error = select_mat_spec(driver, groupalias, matcodealias, groupitem, matcodeitem)
-            
-            # # if error is still raising, print error as file and break this loop
-
-            # if check_error:
-            #     set_format = (row[0], matcodeitem, row[1]["S.PRT_NAME"])
-            #     error_text = "Item No. %s, Material Group %s for %s is not found." %(set_format)
-            #     errorlist.append(error_text)
-                
-            #     break
-
-            #     driver.close()
-            # else:
-            #     pass
-
-            # set base selector for all dropdown lists
-
-            matspec_base = """#MainContent_dvR_{index} > table > tbody > tr > td:nth-child(2) > div 
-                            > span > span.selection > span > span.select2-selection__arrow"""
-            
-            # select all dropdown lists
-
-            obg = ("001", "obgalias", "S.MATSPEC_01")
-            store = ("049", "storealias", "S.STORING")
-            detail = ("050", "detailalias", "S.STORING_DETAIL")
-            weight = ("052", "weightalias", "S.WEIGHT")
-            unit = ("054", "unitalias", "S.UNIT")
-
-            all_dropdowns = [obg, store, detail, weight, unit]
-
-            for dropdown in all_dropdowns:
-                selector = matspec_base.format(index=dropdown[0])
-                selectname = parameters[dropdown[1]][row[1][dropdown[2]]]
-                dropdown_selection(driver=driver, button_css=selector, selectname=selectname)
-
-            # dump data into inputs of material specification session
-
-            dump_mat_spec(driver, row[1], mat_spec_input, columnname)
-
-            # dump "set of" data if available 
-
-            if (row[1]["S.UNIT"] == "SET"):
-                dumpinput(driver, str(row[1]["S.SET_CONSIST"]), "#MainContent_txtR_SET_CONSIST")
-
-            # ***** leave default values for receiving method ***** 
-
-            """
-            2. Apply Equipment (BOM)
-            """
-
-            # click "search eq.bom" Button
-
-            driver.find_element(By.CSS_SELECTOR, "#MainContent_btnBOM").click()
-
-            # select equipment
-
-            check_error = select_equipment(driver, row[1]["S.EQ_TAG"])
-
-            # if error is raising, print error as file and break this loop
-
-            if check_error:
-                set_format = (row[0], row[1]["S.EQ_TAG"], row[1]["S.PRT_NAME"])
-                error_text = "Item No. %s, Equipment Tag %s for %s is not found." %(set_format)
-                errorlist.append(error_text)
-                # break
-
-                # driver.close()
-            else:
-                pass
-
-
-            """
-            3. Material Master
-            """
-
-            # dump data into inputs of material master session
-
-            dump_mat_master(driver, row[1], mat_master_input, columnname)
-
-            """
-            4. Material Return Stock
-            """
-
-            # ***** leave default values for this ***** 
-
-            """
-            5. Attach Document
-            """
-
-            # ***** assume that there are no attachments ***** 
-
-            """
-            6. Request Reason
-            """
-
-            # dump reason from aliasfile
-
-            dumpinput(driver, parameters["request reason"], "#MainContent_txtREASON")
-
-            """
-            save record 
-            """
-
-            # click save button
-
-            driver.find_element(By.CSS_SELECTOR, "#MainContent_btnSave2").click()
-
-            # check completion
-
-            message = driver.find_element(By.CSS_SELECTOR, "#MsgDetail").text
-
-            if message == "Save completed.":
-                driver.find_element(By.CSS_SELECTOR, "#Msg-OK").click()
-                pass
-            else:
-                driver.find_element(By.CSS_SELECTOR, "#Msg-OK").click()
-                pass
-                check_error = True
-
-            # report status
-
-            progressreport(indexnumber=row[0], totalrow=n_row)        
-
-            # switch driver back to material request page  
-            try:
-                WebDriverWait(driver, 5).until(
-                EC.element_to_be_clickable((By.CSS_SELECTOR, "#btnClose"))
-                ).click()
-                # driver.find_element(By.CSS_SELECTOR, "#btnClose").click()
-                driver.switch_to.window(before_window)
-            except TimeoutException:
                 driver.close()
                 driver.switch_to.window(before_window)
-                driver.find_element(By.CSS_SELECTOR, "#MainContent_btnRefresh").click()
+                continue
+
+
+
+
+
+                """
+                save record 
+                """
+
+                # click save button
+
+                driver.find_element(By.CSS_SELECTOR, "#MainContent_btnSave2").click()
+
+                # check completion
+
+                message = driver.find_element(By.CSS_SELECTOR, "#MsgDetail").text
+
+                if message == "Save completed.":
+                    driver.find_element(By.CSS_SELECTOR, "#Msg-OK").click()
+                    pass
+                else:
+                    driver.find_element(By.CSS_SELECTOR, "#Msg-OK").click()
+                    pass
+
+                # report status
+
+                progressreport(indexnumber=row[0], totalrow=n_row)        
+
+                # switch driver back to material request page  
+                try:
+                    WebDriverWait(driver, 5).until(
+                    EC.element_to_be_clickable((By.CSS_SELECTOR, "#btnClose"))
+                    ).click()
+                    # driver.find_element(By.CSS_SELECTOR, "#btnClose").click()
+                    driver.switch_to.window(before_window)
+                except TimeoutException:
+                    driver.close()
+                    driver.switch_to.window(before_window)
+                    driver.find_element(By.CSS_SELECTOR, "#MainContent_btnRefresh").click()
             break
         break
 
