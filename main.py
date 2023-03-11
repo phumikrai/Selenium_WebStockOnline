@@ -2,6 +2,7 @@
 
 import os
 import json
+import time 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import TimeoutException
@@ -16,6 +17,10 @@ from material_spec import select_mat_spec, dump_mat_spec, matspec
 from apply_equip import select_equipment
 from mat_master import dump_mat_master, matmaster
 
+# start program
+
+starttime = time.time()
+
 # load parameter from parameters.json
 
 with open("aliasfile.json", "r") as openfile:
@@ -23,36 +28,32 @@ with open("aliasfile.json", "r") as openfile:
 
 # print text within console
 
-greeting(parameters["plant name"], parameters["mrpc name"], parameters["file name"])
-
-# load col to css input data
-
-mat_spec_input = matspec().col_to_css
-mat_master_input = matmaster().col_to_css
+greeting(parameters["plant name"], 
+         parameters["mrpc name"], 
+         parameters["file name"])
 
 # load excel data
 
 filepath = os.getcwd()+"\{}".format(parameters["file name"])
-
 df = loaddata(filepath, parameters["sheet name"])
 df = df.drop(index=0).dropna(how="all")
 
-# count row
+# get general parameters
 
-n_row = len(df.index)
+homeurl = "http://gcgplbiis/webstock/" # web stock online url
+mat_spec_input = matspec().col_to_css # mapping column name with css field
+mat_master_input = matmaster().col_to_css # mapping column name with css field
+n_row = len(df.index) # count row
+columnname = df.columns # column name
 
 # separate data group by 50
 
 sliced_df = dataslicing(df)
 
-# get column name
-
-columnname = df.columns
-
-# set pageLoadStrategy
+# get selenium parameters
 
 caps = DesiredCapabilities().CHROME
-caps["pageLoadStrategy"] = "eager"
+caps["pageLoadStrategy"] = "eager" # action without full loading
 
 # load chrome driver
 
@@ -61,17 +62,10 @@ options = webdriver.ChromeOptions()
 options.add_experimental_option('excludeSwitches', ['enable-logging'])
 driver = webdriver.Chrome(executable_path=driverpath, options=options, desired_capabilities=caps)
 
-# set url for web stock online "http://gcgplbiis/webstock/"
+# set drivers
 
-homeurl = "http://gcgplbiis/webstock/"
-
-# set implicitly wait default equal 1 sec
-
-driver.implicitly_wait(1)
-
-# minimize window
-
-driver.minimize_window()
+driver.implicitly_wait(1) # implicitly wait = 1 sec
+driver.minimize_window() # minimize window
 
 # navigate to url
 
@@ -305,7 +299,15 @@ for dataframe in sliced_df:
         break
     break
 
+# finish progream
+
+endtime = time.time()
+timediff = (endtime-starttime)/60
+
+# print ending message
+
 print("\nSed Lew Jaa~")
+print("This is spending only {timediff:.2f} min".format(timediff=timediff))
 driver.quit()
 
 # print error report if found
