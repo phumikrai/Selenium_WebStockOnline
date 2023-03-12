@@ -19,10 +19,6 @@ from material_spec import select_mat_spec, matspec
 from apply_equip import select_equipment
 from mat_master import matmaster
 
-# start program
-
-starttime = time.time()
-
 # determine if application is a script file or exe file
 
 if getattr(sys, 'frozen', False):
@@ -81,6 +77,10 @@ driver.minimize_window() # minimize window
 # navigate to url
 
 driver.get(homeurl)
+
+# start program
+
+starttime = time.time()
 
 # print initial progress
 
