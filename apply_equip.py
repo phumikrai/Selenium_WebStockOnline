@@ -22,7 +22,7 @@ def select_equipment(driver, equipitem):
 
     # insert eq.tag for searching
 
-    eqtag_input = WebDriverWait(driver, 10).until(
+    eqtag_input = WebDriverWait(driver, 5).until(
         EC.visibility_of_element_located((By.CSS_SELECTOR, "#MainContent_txtEqTagNo"))
         )
     eqtag_input.send_keys(equipitem)
@@ -33,7 +33,7 @@ def select_equipment(driver, equipitem):
 
     # check search results
 
-    checkbox = WebDriverWait(driver, 10).until(
+    checkbox = WebDriverWait(driver, 5).until(
         EC.visibility_of_element_located((By.CSS_SELECTOR, "#tblEQList > tbody > tr > td > input"))
     )
     checkbox.click()

@@ -120,25 +120,5 @@ def loadspec(driver):
     
     return check_error
 
-def dump_mat_spec(driver, selectedrow, mat_spec_input, columnname):
-    """
-    This function is for automatically dumping data into material specification session
-    driver: browser driver class created from webdriver
-    selectedrow: seleced row for data input
-    mat_spec_input: column and field related as dict
-    columnname : name of column within dataframe
-    """
-    # import library
-
-    from functions import dumpinput
-
-    # loop through each column to dump available field
-
-    for col, value in zip(columnname, selectedrow):
-        if (col in mat_spec_input) and (str(value) != "nan"):
-            dumpinput(driver, str(value), mat_spec_input[col])
-        else:
-            pass
-
 
 

@@ -5,17 +5,17 @@ import json
 import time 
 from selenium import webdriver
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import TimeoutException, KeyError, NoSuchElementException
+from selenium.common.exceptions import TimeoutException, NoSuchElementException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 
 # local library
 
-from functions import dataslicing, loaddata, greeting, progressreport, dropdown_selection, dumpinput
-from material_spec import select_mat_spec, dump_mat_spec, matspec
+from functions import dataslicing, loaddata, greeting, progressreport, dropdown_selection, dumpinput, loopdump
+from material_spec import select_mat_spec, matspec
 from apply_equip import select_equipment
-from mat_master import dump_mat_master, matmaster
+from mat_master import matmaster
 
 # start program
 
@@ -43,8 +43,8 @@ sliced_df = dataslicing(df)
 # get general parameters
 
 homeurl = "http://gcgplbiis/webstock/" # web stock online url
-mat_spec_input = matspec().col_to_css # mapping column name with css field
-mat_master_input = matmaster().col_to_css # mapping column name with css field
+mat_spec_col_to_field = matspec().col_to_css # mapping column name with css field
+mat_master_col_to_field = matmaster().col_to_css # mapping column name with css field
 n_row = len(df.index) # count row
 columnname = df.columns # column name
 errorlist = [] # error collection
@@ -85,10 +85,10 @@ try:
         )
     manage_button.click()
 
-except TimeoutException:
+except (TimeoutException, ConnectionResetError):
     timeout_error = True
 
-# program is runnning as long as timeout error = false
+# program is runnning if no timeout error
 
 if not(timeout_error):
 
@@ -123,7 +123,7 @@ if not(timeout_error):
             mrpcname = parameters["mrpc name"]
             dropdown_selection(driver=driver, button_css=mrpc_selector, selectname=mrpcname)
 
-        except TimeoutException:
+        except (TimeoutException, ConnectionResetError):
             timeout_error = True
             break
 
@@ -136,14 +136,14 @@ if not(timeout_error):
 
                 driver.find_element(By.CSS_SELECTOR, "#MainContent_btnAdd").click()
 
-                # check page redirect and set windows
+                # check page redirect 
 
-                WebDriverWait(driver, 10).until(
-                    EC.new_window_is_opened(driver.window_handles)
+                WebDriverWait(driver, 5).until(
+                    EC.number_of_windows_to_be(2)
                     )
                 before_window = driver.window_handles[0]
                 after_window = driver.window_handles[-1]
-                
+
                 # switch driver to new one
 
                 driver.switch_to.window(after_window)
@@ -184,7 +184,7 @@ if not(timeout_error):
 
                 # dump data into inputs of material specification session
 
-                dump_mat_spec(driver, row[1], mat_spec_input, columnname)
+                loopdump(driver, row[1], mat_spec_col_to_field, columnname)
 
                 # dump "set of" data if available 
 
@@ -211,7 +211,7 @@ if not(timeout_error):
 
                 # dump data into inputs of material master session
 
-                dump_mat_master(driver, row[1], mat_master_input, columnname)
+                loopdump(driver, row[1], mat_master_col_to_field, columnname)
 
                 """
                 4. Material Return Stock
@@ -232,25 +232,7 @@ if not(timeout_error):
                 # dump reason from aliasfile
 
                 dumpinput(driver, parameters["request reason"], "#MainContent_txtREASON")
-
-
-            except (TimeoutException, KeyError, NoSuchElementException):
-                item_error = True
-                item = row[0]
-                part = row[1]["S.PRT_NAME"]
-                mat = str(row[1]["I.MATGRP_CODE"])
-                tag = row[1]["S.EQ_TAG"]
-                error_text = "Item No. {item}, {part}, got an error, maybe mat.group {mat} or eq.tag {tag} is wrong."
-                format_text = error_text.format(item=item, part=part, mat=mat, tag=tag)
-                errorlist.append(format_text)
-                driver.close()
-                driver.switch_to.window(before_window)
-                continue
-
-
-
-
-
+                
                 """
                 save record 
                 """
@@ -264,51 +246,74 @@ if not(timeout_error):
                 message = driver.find_element(By.CSS_SELECTOR, "#MsgDetail").text
 
                 if message == "Save completed.":
-                    driver.find_element(By.CSS_SELECTOR, "#Msg-OK").click()
-                    pass
+                    driver.find_element(By.CSS_SELECTOR, "#Msg-OK").click() 
                 else:
                     driver.find_element(By.CSS_SELECTOR, "#Msg-OK").click()
-                    pass
-
-                # report status
+                    print("Error is raised")
+                    raise Exception
+                
+                # report progress status 
 
                 progressreport(indexnumber=row[0], totalrow=n_row)        
 
-                # switch driver back to material request page  
-                try:
-                    WebDriverWait(driver, 5).until(
-                    EC.element_to_be_clickable((By.CSS_SELECTOR, "#btnClose"))
-                    ).click()
-                    # driver.find_element(By.CSS_SELECTOR, "#btnClose").click()
-                    driver.switch_to.window(before_window)
-                except TimeoutException:
-                    driver.close()
-                    driver.switch_to.window(before_window)
-                    driver.find_element(By.CSS_SELECTOR, "#MainContent_btnRefresh").click()
-            break
-        break
+                # close driver and switch back to material request page  
 
-# except (TimeoutException, KeyError, NoSuchElementException):
-#     if currentstage == "start":
-#         pass
+                driver.close()
+                driver.switch_to.window(before_window)
+                driver.find_element(By.CSS_SELECTOR, "#MainContent_btnRefresh").click()
+                    
+            except (TimeoutException, KeyError, NoSuchElementException, Exception, ConnectionResetError):
+                
+                # set text components
+                
+                item_error = True
+                item = row[0]
+                part = row[1]["S.PRT_NAME"]
+                mat = str(row[1]["I.MATGRP_CODE"])
+                tag = row[1]["S.EQ_TAG"]
+                error_text = "Item No. {item}, {part}, got an error, maybe mat.group {mat} or eq.tag {tag} is wrong."
+                
+                # combine and collect an error
+                
+                format_text = error_text.format(item=item, part=part, mat=mat, tag=tag)
+                errorlist.append(format_text)
+                
+                # report progress status
 
-# print error if available
+                progressreport(indexnumber=row[0], totalrow=n_row)
 
-if timeout_error == True:
+                # close driver and switch back to material request page
+                
+                driver.close()
+                driver.switch_to.window(before_window)
+                continue 
+
+        # save draft if loop through each 50 items
+
+        driver.find_element(By.CSS_SELECTOR, "#MainContent_btnSaveDraft").click()
+
+else:
+    pass
+
+# print result and error (if available)
+
+if (timeout_error == True) and (item_error == False):
     print("\nSome web element is not found. Please check your internet, maybe it is slow.")
-elif item_error == True:
-    print("....")
+elif (timeout_error == True) and (item_error == True):
+    print("\nSome web element is not found. Please check your internet and errorlog.txt file.")
+elif (timeout_error == False) and (item_error == True):
+    print("\nSed Lew Jaa~, but there are some error na~, please check errorlog.txt file.")
 else:
     print("\nSed Lew Jaa~")
 
-# finish progream 
+# finish progream and print out time spending
 
 endtime = time.time()
 timediff = (endtime-starttime)/60
-print("You are just spending only {timediff:.2f} mins for this program".format(timediff=timediff))
+print("You are just spending only {timediff:.2f} mins for this automation".format(timediff=timediff))
 driver.quit()
 
-# print error report if found
+# print error report (if available)
 
 if len(errorlist) > 0:
     with open("errorlog.txt", "w") as errorfile:

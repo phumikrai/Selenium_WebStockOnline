@@ -60,7 +60,7 @@ def greeting(plantname: str, mrpc: str, filename: str):
     """
     import sys
 
-    title = " Bot Jaa~! - Automation for dumping data to Web Stock Online\n"
+    title = " Bot Jaa~! - Automation for dumping data to Web Stock Online (v1.0.0)\n"
 
     sys.stdout.write("%s\n" %("="*(len(title))))
     sys.stdout.write(title)
@@ -140,5 +140,22 @@ def dumpinput(driver, iteminput, cssname):
     input = driver.find_element(By.CSS_SELECTOR, cssname)
     input.send_keys(iteminput)
 
-def loop_dump():
-    pass
+def loopdump(driver, selectedrow, col_to_field, columnname):
+    """
+    This function is for automatically dumping data into material specification session
+    driver: browser driver class created from webdriver
+    selectedrow: seleced row for data input
+    col_to_field: column and field related as dict
+    columnname : name of column within dataframe
+    """
+    # import library
+
+    from functions import dumpinput
+
+    # loop through each column to dump available field
+
+    for col, value in zip(columnname, selectedrow):
+        if (col in col_to_field) and (str(value) != "nan"):
+            dumpinput(driver, str(value), col_to_field[col])
+        else:
+            pass
