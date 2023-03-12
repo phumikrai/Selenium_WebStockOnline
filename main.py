@@ -1,6 +1,7 @@
 # standard library
 
 import os
+import sys
 import json
 import time 
 from selenium import webdriver
@@ -9,6 +10,7 @@ from selenium.common.exceptions import TimeoutException, NoSuchElementException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
+from webdriver_manager.chrome import ChromeDriverManager # remote webdriver
 
 # local library
 
@@ -21,9 +23,17 @@ from mat_master import matmaster
 
 starttime = time.time()
 
+# determine if application is a script file or exe file
+
+if getattr(sys, 'frozen', False):
+    application_path = os.path.dirname(sys.executable)
+elif __file__:
+    application_path = os.path.dirname(__file__)
+
 # load parameter from parameters.json
 
-with open("aliasfile.json", "r") as openfile:
+jsonpath = os.path.join(application_path, "aliasfile.json")
+with open(jsonpath, "r") as openfile:
     parameters = json.load(openfile)
 
 # print text within console
@@ -32,8 +42,8 @@ greeting(parameters["plant name"], parameters["mrpc name"], parameters["file nam
 
 # load excel data
 
-filepath = os.getcwd()+"\{}".format(parameters["file name"])
-df = loaddata(filepath, parameters["sheet name"])
+excelpath = os.path.join(application_path, parameters["file name"])
+df = loaddata(excelpath, parameters["sheet name"])
 df = df.drop(index=0).dropna(how="all")
 
 # separate data group by 50
@@ -56,12 +66,12 @@ item_error = False # default item error
 caps = DesiredCapabilities().CHROME
 caps["pageLoadStrategy"] = "eager" # action without full loading
 
-# load chrome driver
+# load remote chrome driver
 
-driverpath = os.getcwd()+"\chromedriver.exe"
 options = webdriver.ChromeOptions()
 options.add_experimental_option('excludeSwitches', ['enable-logging'])
-driver = webdriver.Chrome(executable_path=driverpath, options=options, desired_capabilities=caps)
+driver = webdriver.Chrome(executable_path=ChromeDriverManager().install(), 
+                          options=options, desired_capabilities=caps)
 
 # set loaded driver
 
@@ -80,7 +90,7 @@ progressreport(indexnumber=0, totalrow=n_row)
 # click material management button
 
 try:
-    manage_button = WebDriverWait(driver, 5).until(
+    manage_button = WebDriverWait(driver, 10).until(
         EC.presence_of_element_located((By.LINK_TEXT, "Material management"))
         )
     manage_button.click()
@@ -99,7 +109,7 @@ if not(timeout_error):
         # click new material button
         
         try:
-            mat_button = WebDriverWait(driver, 5).until(
+            mat_button = WebDriverWait(driver, 10).until(
                 EC.presence_of_element_located((By.LINK_TEXT, "New material"))
                 )
             mat_button.click()
@@ -138,9 +148,7 @@ if not(timeout_error):
 
                 # check page redirect 
 
-                WebDriverWait(driver, 5).until(
-                    EC.number_of_windows_to_be(2)
-                    )
+                WebDriverWait(driver, 10).until(EC.number_of_windows_to_be(2))
                 before_window = driver.window_handles[0]
                 after_window = driver.window_handles[-1]
 
@@ -249,7 +257,6 @@ if not(timeout_error):
                     driver.find_element(By.CSS_SELECTOR, "#Msg-OK").click() 
                 else:
                     driver.find_element(By.CSS_SELECTOR, "#Msg-OK").click()
-                    print("Error is raised")
                     raise Exception
                 
                 # report progress status 
