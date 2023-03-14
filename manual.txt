@@ -1,0 +1,13 @@
+==============================================
+Manual for Automation through Web Stock Online
+==============================================
+
+Prerequisites:
+1. Google Chrome.exe -> Browser
+2. Bot Jaa.exe -> file to run bot
+3. aliasfile.json -> any config can be edited using this file
+4. Data in excel to be dumped -> "MAT_template_Uploaded.xlsx" is named as default, which is able to be renamed.
+
+
+
+

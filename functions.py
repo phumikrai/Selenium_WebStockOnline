@@ -60,18 +60,20 @@ def greeting(plantname: str, mrpc: str, filename: str):
     """
     import sys
 
-    title = " Bot Jaa~! - Automation for dumping data to Web Stock Online (v1.0.0)\n"
+    title = " Bot Jaa~! - Automation for dumping data to Web Stock Online v(1.0.1)\n"
 
     sys.stdout.write("%s\n" %("="*(len(title))))
     sys.stdout.write(title)
-    sys.stdout.write("%s\n\n" %("="*(len(title))))
+    sys.stdout.write("%s\n" %("="*(len(title))))
+    space = len(title)
+    format = "%{space}s\n\n".format(space=space)
+    sys.stdout.write(format %("by T-TA-EX"))
     sys.stdout.flush()
 
-    sys.stdout.write("Stock code is being created for plant: \n\t\"%s\"\n" %plantname)
-    sys.stdout.write("through MRP Controller: \n\t\"%s\"\n" %mrpc)
+    sys.stdout.write("Stock code is being created for plant: \n\t\"%s\"\n\n" %plantname)
+    sys.stdout.write("through MRP Controller: \n\t\"%s\"\n\n" %mrpc)
     sys.stdout.write("using: \n\t\"%s\"\n\n" %filename)
-    sys.stdout.flush()
-    
+    sys.stdout.flush()    
 
 def progressreport(indexnumber: int, totalrow: int):
     """

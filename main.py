@@ -62,6 +62,18 @@ item_error = False # default item error
 caps = DesiredCapabilities().CHROME
 caps["pageLoadStrategy"] = "eager" # action without full loading
 
+# print initial progress
+
+text = "Press Enter to start..."
+sys.stdout.write(input(text))
+sys.stdout.write("\r% Progress\n" + " "*len(text))
+sys.stdout.flush()
+progressreport(indexnumber=0, totalrow=n_row)
+
+# start program
+
+starttime = time.time()
+
 # load remote chrome driver
 
 options = webdriver.ChromeOptions()
@@ -72,20 +84,10 @@ driver = webdriver.Chrome(executable_path=ChromeDriverManager().install(),
 # set loaded driver
 
 driver.implicitly_wait(1) # implicitly wait = 1 sec
-driver.minimize_window() # minimize window
 
 # navigate to url
 
 driver.get(homeurl)
-
-# start program
-
-starttime = time.time()
-
-# print initial progress
-
-print("% Progress\n")
-progressreport(indexnumber=0, totalrow=n_row)
 
 # click material management button
 
@@ -305,13 +307,13 @@ else:
 # print result and error (if available)
 
 if (timeout_error == True) and (item_error == False):
-    print("\nSome web element is not found. Please check your internet, maybe it is slow.")
+    print("\n\nSome web element is not found. Please check your internet, maybe it is slow.")
 elif (timeout_error == True) and (item_error == True):
-    print("\nSome web element is not found. Please check your internet and errorlog.txt file.")
+    print("\n\nSome web element is not found. Please check your internet and errorlog.txt file.")
 elif (timeout_error == False) and (item_error == True):
-    print("\nSed Lew Jaa~, but there are some error na~, please check errorlog.txt file.")
+    print("\n\nSed Lew Jaa~, but there are some error na~, please check errorlog.txt file.")
 else:
-    print("\nSed Lew Jaa~")
+    print("\n\nSed Lew Jaa~")
 
 # finish progream and print out time spending
 
@@ -329,3 +331,8 @@ if len(errorlist) > 0:
     errorfile.close()
 else:
     pass
+
+# quit program
+
+text = "\nPress Enter to quit..."
+sys.stdout.write(input(text))
