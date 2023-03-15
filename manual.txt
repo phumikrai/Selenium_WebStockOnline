@@ -8,6 +8,28 @@ Prerequisites:
 3. aliasfile.json -> any config can be edited using this file
 4. Data in excel to be dumped -> "MAT_template_Uploaded.xlsx" is named as default, which is able to be renamed.
 
+How to use this automation program
+1. Files (No.2, 3, 4) must be in the same folder
+2. Prepare your data using excel template ("MAT_template_Uploaded.xlsx)
+3. Don't touch row number 1 and 2 within such excel file, it can be started from row number 3.
+4. Plant name, mrpc name, file name, sheet name, request reason can be changed and set as you want using aliasfile.json based on exact value or name on Web Stock Online.
+5. Aliasfile.json can be edited by using any text editer for instance; vscode, notepad, and etc.
+6. If everything is ready and prepared, just double click on .exe file.
 
 
+Things you should know
+1. After click to run a program, you have to wait for a while since libraries are being loaded.
+2. This program is just a prototype version, its size is too large. If I have enough time I will fix na. By the way, it is work for now!, so don't think too much, run, and go sip a cup of thai tea instead. :D
+3. There are some field that this program do not focus on, it leaves the default value such blank or null or nan
+
+List of unfocused field (leave default values)
+1. "can be reconditioned"
+2. "receiving method"
+3. "capital spare"
+4. "batch management"
+5. "material return stock"
+6. "attach document"
+7. "life time"
+8. "material class"
+9. "quantity" (Default = 1)
 
